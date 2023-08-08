@@ -20,10 +20,10 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		_, err := ValidateJWT(c.Request.Header.Get("Token"))
+		_, err := ValidateAccessToken(c.Request.Header.Get("Token"))
 
 		if err != nil {
-			c.String(http.StatusUnauthorized, "Could not authenticate account")
+			c.String(http.StatusUnauthorized, ErrorToString(err))
 			c.Abort()
 			return
 		}

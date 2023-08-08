@@ -2,21 +2,22 @@ package main
 
 import (
 	"errors"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 )
 
-// Creates a JWT from an Account object
+// Creates an access JWT token from an Account object
 //
 // Returns the token and nil on a successful encoding
 // Otherwise it returns a blank string and an error
-func CreateToken(accountObj Account) (string, error) {
+func CreateAccessToken(accountObj Account) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["username"] = accountObj.Username
 	claims["hash"] = accountObj.PasswordHash
-	claims["authorized"] = true
+	claims["expiry"] = time.Now().Add(time.Minute * 15)
 
 	tokenString, err := token.SignedString(secret)
 	if err != nil {
@@ -26,10 +27,10 @@ func CreateToken(accountObj Account) (string, error) {
 	return tokenString, nil
 }
 
-// Takes in a JWT, verifies the signature and returns the username associated with the account that is authenticated
+// Takes in an access JWT, verifies the signature and returns the username associated with the account that is authenticated
 //
 // Returns either the username and nil or a blank string and an error if it failed to authenticate it
-func ValidateJWT(tokenStr string) (string, error) {
+func ValidateAccessToken(tokenStr string) (string, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 
@@ -48,6 +49,15 @@ func ValidateJWT(tokenStr string) (string, error) {
 		claims, ok := token.Claims.(jwt.MapClaims)
 
 		if ok {
+			expirationTime, err := time.Parse(time.RFC3339, claims["expiry"].(string))
+			if err != nil {
+				return "", errors.New("could not validate token expiry")
+			}
+
+			if time.Now().After(expirationTime) {
+				return "", errors.New("token is expired")
+			}
+
 			return claims["username"].(string), nil
 		}
 

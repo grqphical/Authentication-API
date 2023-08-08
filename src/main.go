@@ -54,7 +54,7 @@ func CreateAccount(c *gin.Context) {
 	accountObj := Account{Username: username, PasswordHash: hash, Email: email}
 	accounts = append(accounts, accountObj)
 
-	token, err := CreateToken(accountObj)
+	token, err := CreateAccessToken(accountObj)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
@@ -77,7 +77,7 @@ func Login(c *gin.Context) {
 		fmt.Println("account")
 		if account.Username == username {
 			if VerifyPassword(password, account.PasswordHash) {
-				token, err := CreateToken(account)
+				token, err := CreateAccessToken(account)
 
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
