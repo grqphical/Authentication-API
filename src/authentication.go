@@ -21,7 +21,10 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 		}
 
 		_, err := ValidateAccessToken(c.Request.Header.Get("Token"))
-
+        
+        if err == errors.New(TOKEN_EXPIRED_ERR) {
+            c.Redirect(http.StatusTemporaryRedirect ,"/refresh-token")
+        }
 		if err != nil {
 			c.String(http.StatusUnauthorized, ErrorToString(err))
 			c.Abort()

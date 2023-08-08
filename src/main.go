@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	
 	"net/http"
 	"os"
 
@@ -54,14 +54,23 @@ func CreateAccount(c *gin.Context) {
 	accountObj := Account{Username: username, PasswordHash: hash, Email: email}
 	accounts = append(accounts, accountObj)
 
-	token, err := CreateAccessToken(accountObj)
+    	accessToken, err := CreateAccessToken(accountObj)
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
-		return
-	}
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
+            return
+        }
 
-	c.JSON(http.StatusCreated, map[string]string{"token": token})
+        refreshToken, err := CreateRefreshToken(accountObj)
+
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
+            return
+        }
+
+        c.JSON(http.StatusAccepted, map[string]string{"refreshToken": refreshToken, "accessToken" : accessToken})
+        return
+
 
 	SaveAccounts()
 
@@ -74,23 +83,56 @@ func Login(c *gin.Context) {
 	password := c.Request.Form.Get("password")
 
 	for _, account := range accounts {
-		fmt.Println("account")
 		if account.Username == username {
 			if VerifyPassword(password, account.PasswordHash) {
-				token, err := CreateAccessToken(account)
+				accessToken, err := CreateAccessToken(account)
 
 				if err != nil {
 					c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
 					return
 				}
 
-				c.JSON(http.StatusAccepted, map[string]string{"token": token})
+				refreshToken, err := CreateRefreshToken(account)
+
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
+					return
+				}
+
+				c.JSON(http.StatusAccepted, map[string]string{"refreshToken": refreshToken, "accessToken" : accessToken})
 				return
 			}
 		}
 	}
 
-	c.JSON(http.StatusNotFound, GenerateHTTPError(http.StatusNotFound, "User doesn not exist"))
+	c.JSON(http.StatusNotFound, GenerateHTTPError(http.StatusNotFound, "User doesn't not exist"))
+}
+
+// API Route to get a new access token if the current one is expired
+func RefreshAccessToken(c *gin.Context){
+    c.Request.ParseMultipartForm(1000)
+    refreshToken := c.Request.Form.Get("refreshToken")
+   
+    uuid, err := ValidateRefreshToken(refreshToken)
+
+    if err != nil {
+        c.JSON(http.StatusBadRequest, GenerateHTTPError(http.StatusBadRequest, ErrorToString(err)))
+        return
+    }
+    
+    for _, account := range accounts {
+        if account.UUID == uuid {
+            token, err := CreateAccessToken(account)
+
+            if err != nil {
+                c.JSON(http.StatusBadRequest, GenerateHTTPError(http.StatusBadRequest, ErrorToString(err)))
+                return
+            }
+
+            c.JSON(http.StatusAccepted, map[string]string{"accessToken" : token})
+            return
+        }
+    }
 }
 
 func main() {
@@ -111,6 +153,7 @@ func main() {
 	authenticationRoutes := router.Group("/authentication")
 
 	authenticationRoutes.POST("/create-account", CreateAccount)
+    authenticationRoutes.POST("/refresh-token", RefreshAccessToken)
 	authenticationRoutes.PUT("/", Login)
 
 	router.Run("127.0.0.1:8000")

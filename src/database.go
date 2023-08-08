@@ -10,6 +10,7 @@ type Account struct {
 	Username     string `json:"username"`
 	PasswordHash string `json:"passwordHash"`
 	Email        string `json:"email"`
+    UUID         string `json:"uuid"`
 }
 
 // Saves the accounts list to the disk
