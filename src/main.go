@@ -1,18 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
-
-// Used to represent an account in the project
-type Account struct {
-	Username     string `json:"username"`
-	PasswordHash string `json:"passwordHash"`
-	Email        string `json:"email"`
-}
 
 var accounts []Account = []Account{}
 var secret []byte
@@ -68,6 +62,9 @@ func CreateAccount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, map[string]string{"token": token})
+
+	SaveAccounts()
+
 }
 
 // Handles logging into existing accounts
@@ -77,6 +74,7 @@ func Login(c *gin.Context) {
 	password := c.Request.Form.Get("password")
 
 	for _, account := range accounts {
+		fmt.Println("account")
 		if account.Username == username {
 			if VerifyPassword(password, account.PasswordHash) {
 				token, err := CreateToken(account)
@@ -87,14 +85,19 @@ func Login(c *gin.Context) {
 				}
 
 				c.JSON(http.StatusAccepted, map[string]string{"token": token})
+				return
 			}
 		}
 	}
+
+	c.JSON(http.StatusNotFound, GenerateHTTPError(http.StatusNotFound, "User doesn not exist"))
 }
 
 func main() {
 	LoadDotEnv()
 	secret = []byte(os.Getenv("SECRET"))
+
+	accounts = LoadAccounts()
 
 	router := gin.Default()
 
@@ -108,7 +111,7 @@ func main() {
 	authenticationRoutes := router.Group("/authentication")
 
 	authenticationRoutes.POST("/create-account", CreateAccount)
-	authenticationRoutes.PUT("/authenticate", Login)
+	authenticationRoutes.PUT("/", Login)
 
 	router.Run("127.0.0.1:8000")
 }
