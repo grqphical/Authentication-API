@@ -48,7 +48,7 @@ func ValidateAccessToken(tokenStr string) (string, error) {
 	if token.Valid {
 		claims, ok := token.Claims.(jwt.MapClaims)
 
-		if ok {
+	if ok {
 			expirationTime, err := time.Parse(time.RFC3339, claims["expiry"].(string))
 			if err != nil {
 				return "", errors.New("could not validate token expiry")
@@ -67,19 +67,19 @@ func ValidateAccessToken(tokenStr string) (string, error) {
 }
 
 func CreateRefreshToken(accountObj Account) (string, error) {
-     
-    token := jwt.New(jwt.SigningMethodHS256)
 
-    claims := token.Claims.(jwt.MapClaims)
-    claims["uuid"] = accountObj.UUID
-    claims["expiry"] = time.Now().Add(time.Hour * 24 * 7)
+	token := jwt.New(jwt.SigningMethodHS256)
 
-    tokenString, err := token.SignedString(secret)
-    if err != nil {
-        return "", err
-    }
+	claims := token.Claims.(jwt.MapClaims)
+	claims["uuid"] = accountObj.UUID
+	claims["expiry"] = time.Now().Add(time.Hour * 24 * 7)
 
-    return tokenString, nil
+	tokenString, err := token.SignedString(secret)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 func ValidateRefreshToken(tokenStr string) (string, error) {
@@ -117,4 +117,3 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 
 	return "", errors.New("authentication error")
 }
-

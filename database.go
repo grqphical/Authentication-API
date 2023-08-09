@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// Used to represent an account in the project
+// Used to represent an account in the application
 type Account struct {
 	Username     string `json:"username"`
 	PasswordHash string `json:"passwordHash"`
@@ -23,6 +23,8 @@ func SaveAccounts() {
 }
 
 // Loads the accounts saved to the disk
+//
+// Returns a slice of the Accounts that were loaded from the disk
 func LoadAccounts() []Account {
 	var accounts []Account
 

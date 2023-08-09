@@ -67,7 +67,8 @@ func ValidatePassword(password string) error {
 }
 
 func ValidateEmail(email string) error {
-	regex := regexp.MustCompile("[[:alnum:]!#$%&'*+-/=?^_\x60{|}~.]*@[[:alnum:]-.]*.[a-zA-Z]*")
+    // This regex determines if an email has valid characters and is in the correct format: name@domain.tld
+	regex := regexp.MustCompile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")
 
 	if regex.MatchString(email) {
 		return nil

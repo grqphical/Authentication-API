@@ -1,12 +1,29 @@
 package main
 
 import (
-	
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
+
+// Loads env variables in .env so they can be retrieved with os.Getenv()
+func LoadDotEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
+
+func HandleError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+const TOKEN_EXPIRED_ERR = "token is expired"
 
 var accounts []Account = []Account{}
 var secret []byte
