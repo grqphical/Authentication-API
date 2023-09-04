@@ -13,7 +13,7 @@ import (
 func LoadDotEnv() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("WARNING: .env file not found")
 	}
 }
 
@@ -70,7 +70,7 @@ func CreateAccount(c *gin.Context) {
 	}
 
 	accountObj := Account{Username: username, PasswordHash: hash, Email: email}
-    database.AddAccount(accountObj)
+	database.AddAccount(accountObj)
 
 	accessToken, err := CreateAccessToken(accountObj)
 
@@ -96,38 +96,38 @@ func Login(c *gin.Context) {
 	username := c.Request.Form.Get("username")
 	password := c.Request.Form.Get("password")
 
-    account, err := database.GetAccountByUsername(username)
-    if err != nil {
-        c.String(http.StatusBadRequest, ErrorToString(err))
-        return
-    }
+	account, err := database.GetAccountByUsername(username)
+	if err != nil {
+		c.String(http.StatusBadRequest, ErrorToString(err))
+		return
+	}
 
-    if VerifyPassword(password, account.PasswordHash) {
-        accessToken, err := CreateAccessToken(account)
+	if VerifyPassword(password, account.PasswordHash) {
+		accessToken, err := CreateAccessToken(account)
 
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
-            return
-        }
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
+			return
+		}
 
-        refreshToken, err := CreateRefreshToken(account)
+		refreshToken, err := CreateRefreshToken(account)
 
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
-            return
-        }
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, GenerateHTTPError(http.StatusInternalServerError, ErrorToString(err)))
+			return
+		}
 
-        c.JSON(http.StatusAccepted, map[string]string{"refreshToken": refreshToken, "accessToken": accessToken})
-        return
-    }
+		c.JSON(http.StatusAccepted, map[string]string{"refreshToken": refreshToken, "accessToken": accessToken})
+		return
+	}
 
-    c.JSON(http.StatusNotFound, GenerateHTTPError(http.StatusNotFound, "User doesn't not exist"))
+	c.JSON(http.StatusNotFound, GenerateHTTPError(http.StatusNotFound, "User doesn't not exist"))
 }
 
 // API Route to get a new access token if the current one is expired
 func RefreshAccessToken(c *gin.Context) {
-    c.Request.ParseMultipartForm(1000)
-    refreshToken := c.Request.Form.Get("refreshToken")
+	c.Request.ParseMultipartForm(1000)
+	refreshToken := c.Request.Form.Get("refreshToken")
 
 	id, err := ValidateRefreshToken(refreshToken)
 
@@ -136,29 +136,29 @@ func RefreshAccessToken(c *gin.Context) {
 		return
 	}
 
-    account, err := database.GetAccountByID(id)
+	account, err := database.GetAccountByID(id)
 
-    if err != nil {
-        c.JSON(http.StatusBadRequest, GenerateHTTPError(http.StatusBadRequest, "Invalid account ID"))
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, GenerateHTTPError(http.StatusBadRequest, "Invalid account ID"))
+		return
+	}
 
-    token, err := CreateAccessToken(account)
+	token, err := CreateAccessToken(account)
 
-    if err != nil {
-        c.JSON(http.StatusBadRequest, GenerateHTTPError(http.StatusBadRequest, ErrorToString(err)))
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, GenerateHTTPError(http.StatusBadRequest, ErrorToString(err)))
+		return
+	}
 
-    c.JSON(http.StatusAccepted, map[string]string{"accessToken": token})
+	c.JSON(http.StatusAccepted, map[string]string{"accessToken": token})
 }
 
 func CreateRouter() *gin.Engine {
-    gin.SetMode(gin.ReleaseMode)
-    LoadDotEnv()
+	gin.SetMode(gin.ReleaseMode)
+	LoadDotEnv()
 	secret = []byte(os.Getenv("SECRET"))
 
-    database = NewDatabase("accounts.db")
+	database = NewDatabase("accounts.db")
 
 	router := gin.Default()
 
@@ -175,10 +175,10 @@ func CreateRouter() *gin.Engine {
 	authenticationRoutes.POST("/refresh-token", RefreshAccessToken)
 	authenticationRoutes.PUT("/", Login)
 
-    return router
+	return router
 }
 
 func main() {
-    r := CreateRouter()
-    r.Run("127.0.0.1:8000")
+	r := CreateRouter()
+	r.Run("127.0.0.1:8000")
 }
