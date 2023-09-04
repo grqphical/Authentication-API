@@ -1,6 +1,6 @@
 # Authentication API
 
-[![API Tests](https://github.com/grqphical07/Authentication-API/actions/workflows/tests.yaml/badge.svg)](https://github.com/grqphical07/Authentication-API/actions/workflows/tests.yaml)
+[![API Tests](https://github.com/grqphical07/Authentication-API/actions/workflows/tests.yml/badge.svg)](https://github.com/grqphical07/Authentication-API/actions/workflows/tests.yml)
 
 A simple Authentication REST API made with Go, SQLite and Gin.
 
