@@ -1,4 +1,4 @@
-module example/auth-api
+module github.com/grqphical07/Authentication-API
 
 go 1.20
 
