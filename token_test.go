@@ -7,14 +7,14 @@ import (
 )
 
 func TestCreateAccessToken(t *testing.T) {
-    account := Account{Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", UUID: "1", Email: "john.doe@example.com"}
+    account := Account{ID: 0, Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", Email: "john.doe@example.com"}
     _, err := CreateAccessToken(account)
 
     assert.Equal(t, err, nil)
 }
 
 func TestValidateAccessToken(t *testing.T) {
-    account := Account{Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", UUID: "1", Email: "john.doe@example.com"}
+    account := Account{ID: 0, Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", Email: "john.doe@example.com"}
     token, err := CreateAccessToken(account)
     assert.Equal(t, err, nil)
 
@@ -28,19 +28,19 @@ func TestValidateAccessToken(t *testing.T) {
 }
 
 func TestCreateRefreshToken(t *testing.T) {
-    account := Account{Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", UUID: "1", Email: "john.doe@example.com"}
+    account := Account{ID: 0, Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", Email: "john.doe@example.com"}
     _, err := CreateRefreshToken(account)
     assert.Equal(t, err, nil)
 }
 
 func TestValidateRefreshToken(t *testing.T) {
-    account := Account{Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", UUID: "1", Email: "john.doe@example.com"}
+    account := Account{ID: 0, Username: "JohnDoe", PasswordHash: "6397uhpdasf0nc64780qcn", Email: "john.doe@example.com"}
     token, err := CreateRefreshToken(account)
     assert.Equal(t, err, nil)
 
-    uuid, err := ValidateRefreshToken(token)
+    id, err := ValidateRefreshToken(token)
     assert.Equal(t, err, nil)
-    assert.Equal(t, uuid, account.UUID)
+    assert.Equal(t, id, account.ID)
 
     notTheToken := "7623899pudhiqhnf86"
     _, err = ValidateRefreshToken(notTheToken)

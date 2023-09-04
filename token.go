@@ -71,7 +71,7 @@ func CreateRefreshToken(accountObj Account) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
-	claims["uuid"] = accountObj.UUID
+	claims["id"] = accountObj.ID
 	claims["expiry"] = time.Now().Add(time.Hour * 24 * 7)
 
 	tokenString, err := token.SignedString(secret)
@@ -82,7 +82,7 @@ func CreateRefreshToken(accountObj Account) (string, error) {
 	return tokenString, nil
 }
 
-func ValidateRefreshToken(tokenStr string) (string, error) {
+func ValidateRefreshToken(tokenStr string) (int64, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 
@@ -94,7 +94,7 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if token.Valid {
@@ -103,17 +103,17 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 		if ok {
 			expirationTime, err := time.Parse(time.RFC3339, claims["expiry"].(string))
 			if err != nil {
-				return "", errors.New("could not validate token expiry")
+				return 0, errors.New("could not validate token expiry")
 			}
 
 			if time.Now().After(expirationTime) {
-				return "", errors.New("token is expired")
+				return 0, errors.New("token is expired")
 			}
 
-			return claims["uuid"].(string), nil
+			return int64(claims["id"].(float64)), nil
 		}
 
 	}
 
-	return "", errors.New("authentication error")
+	return 0, errors.New("authentication error")
 }
